@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Requests | Astra Library{% endblock %}
+{% block content %}
+<section class="page-head with-action">
+  <div>
+    <span class="eyebrow">Requests</span>
+    <h1>Book request queue</h1>
+    <p>{{ page_obj.paginator.count }} requests.</p>
+  </div>
+  <a class="btn-primary" href="{% url 'circulation:request_new' %}">New request</a>
+</section>
+<section class="request-grid">
+  {% for request_item in requests %}
+    <article class="request-card reveal">
+      <span class="status-dot {{ request_item.status|lower }}">{{ request_item.get_status_display }}</span>
+      <h2>{{ request_item.display_title }}</h2>
+      <p>{{ request_item.requested_author|default:"Author not listed" }}</p>
+      <small>{{ request_item.user }} · {{ request_item.created_at|date:"M j, Y" }}</small>
+      {% if request_item.admin_notes %}
+        <p class="note">{{ request_item.admin_notes }}</p>
+      {% endif %}
+      {% if user.is_staff or user.profile.can_manage_library %}
+        <a class="btn-small" href="{% url 'circulation:request_review' request_item.pk %}">Review</a>
+      {% endif %}
+    </article>
+  {% empty %}
+    <div class="empty-state">No book requests yet.</div>
+  {% endfor %}
+</section>
+{% include "partials/pagination.html" %}
+{% endblock %}

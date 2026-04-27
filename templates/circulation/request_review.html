@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Review Request | Astra Library{% endblock %}
+{% block content %}
+<section class="page-head">
+  <span class="eyebrow">Review</span>
+  <h1>{{ object.display_title }}</h1>
+  <p>Requested by {{ object.user }}.</p>
+</section>
+<section class="panel narrow reveal">
+  <form method="post" class="form-grid">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn-primary" type="submit">Save review</button>
+  </form>
+</section>
+{% endblock %}

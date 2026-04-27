@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}{{ book.title }} | Astra Library{% endblock %}
+{% block content %}
+<section class="detail-layout">
+  <div class="detail-cover reveal">
+    {% if book.cover_image %}
+      <img src="{{ book.cover_image.url }}" alt="{{ book.title }} cover">
+    {% else %}
+      <div class="cover-fallback large">
+        <strong>{{ book.title }}</strong>
+        <small>{{ book.author }}</small>
+      </div>
+    {% endif %}
+  </div>
+  <article class="detail-main reveal">
+    <div class="book-meta-row">
+      <span>{{ book.genre }}</span>
+      <span>{{ book.category }} shelf</span>
+      <span>{{ book.status_label }}</span>
+    </div>
+    <h1>{{ book.title }}</h1>
+    <p class="lead">by {{ book.author }}</p>
+    <p>{{ book.description }}</p>
+    <dl class="detail-list">
+      <div><dt>ISBN</dt><dd>{{ book.isbn }}</dd></div>
+      <div><dt>Publisher</dt><dd>{{ book.publisher|default:"Not listed" }}</dd></div>
+      <div><dt>Year</dt><dd>{{ book.publication_year|default:"Not listed" }}</dd></div>
+      <div><dt>Stock</dt><dd>{{ book.available_stock }} / {{ book.total_stock }}</dd></div>
+    </dl>
+    <div class="action-row">
+      <a class="btn-secondary" href="{% url 'catalog:ebook_open' book.pk %}">Find eBook</a>
+      {% if user.is_authenticated %}
+        {% if book.is_available %}
+          {% if active_borrow %}
+            <span class="status-wait padded">Already checked out</span>
+          {% else %}
+            <form action="{% url 'circulation:issue_book' book.pk %}" method="post" class="inline-form">
+              {% csrf_token %}
+              {{ borrow_form.as_p }}
+              <button class="btn-primary" type="submit">Issue book</button>
+            </form>
+          {% endif %}
+        {% else %}
+          <a class="btn-primary" href="{% url 'circulation:request_book' book.pk %}">Request this book</a>
+        {% endif %}
+      {% else %}
+        <a class="btn-primary" href="{% url 'login' %}">Login to borrow</a>
+      {% endif %}
+      {% if user.is_authenticated and user.profile.can_manage_library or user.is_staff %}
+        <a class="btn-ghost" href="{% url 'catalog:book_edit' book.pk %}">Edit</a>
+      {% endif %}
+    </div>
+  </article>
+</section>
+
+<section class="section-band reveal">
+  <div class="section-head">
+    <div>
+      <span class="eyebrow">Recommendations</span>
+      <h2>Nearby on the shelf</h2>
+    </div>
+  </div>
+  <div class="book-grid small">
+    {% for book in recommendations %}
+      {% include "partials/book_card.html" %}
+    {% empty %}
+      <p class="empty-state">No recommendations yet.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

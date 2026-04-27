@@ -1,0 +1,70 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Astra Library{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <div class="app-shell">
+    <header class="site-header">
+      <a class="brand" href="{% url 'catalog:home' %}">
+        <span class="brand-mark">A</span>
+        <span>
+          <strong>Astra</strong>
+          <small>Library System</small>
+        </span>
+      </a>
+      <button class="nav-toggle" type="button" data-nav-toggle aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav" data-site-nav>
+        <a href="{% url 'catalog:book_list' %}">Catalog</a>
+        {% if user.is_authenticated %}
+          <a href="{% url 'dashboards:dashboard' %}">Dashboard</a>
+          <a href="{% url 'circulation:history' %}">History</a>
+          <a href="{% url 'circulation:requests' %}">Requests</a>
+          <a class="notification-pill" href="{% url 'circulation:notifications' %}">
+            Alerts
+            {% if unread_notifications_count %}
+              <span>{{ unread_notifications_count }}</span>
+            {% endif %}
+          </a>
+          {% if user.is_staff or user.profile.can_manage_library %}
+            <a href="{% url 'dashboards:admin_dashboard' %}">Admin</a>
+          {% endif %}
+          <a href="{% url 'accounts:profile' %}">Profile</a>
+          <form class="logout-form" action="{% url 'logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit">Logout</button>
+          </form>
+        {% else %}
+          <a href="{% url 'login' %}">Login</a>
+          <a class="nav-cta" href="{% url 'accounts:register' %}">Join</a>
+        {% endif %}
+      </nav>
+    </header>
+
+    {% if messages %}
+      <div class="message-stack" data-messages>
+        {% for message in messages %}
+          <div class="message message-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <script src="{% static 'js/app.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

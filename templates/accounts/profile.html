@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Profile | Astra Library{% endblock %}
+{% block content %}
+<section class="page-head">
+  <span class="eyebrow">Member profile</span>
+  <h1>{{ user.get_full_name|default:user.username }}</h1>
+  <p>{{ user.profile.library_id }} · {{ user.profile.get_role_display }}</p>
+</section>
+<section class="panel narrow reveal">
+  <form method="post" enctype="multipart/form-data" class="form-grid">
+    {% csrf_token %}
+    {{ user_form.as_p }}
+    {{ profile_form.as_p }}
+    <button class="btn-primary" type="submit">Save profile</button>
+  </form>
+</section>
+{% endblock %}

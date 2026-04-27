@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard | Astra Library{% endblock %}
+{% block content %}
+<section class="dashboard-hero admin">
+  <div>
+    <span class="eyebrow">Operations console</span>
+    <h1>Library command center.</h1>
+    <p>{{ stats.active_loans }} active loans · {{ stats.pending_requests }} pending requests · {{ stats.overdue }} overdue</p>
+  </div>
+  <a class="btn-primary" href="{% url 'catalog:book_add' %}">Add book</a>
+</section>
+
+<section class="metric-grid">
+  <article class="metric-card reveal"><span>Books</span><strong>{{ stats.books }}</strong></article>
+  <article class="metric-card reveal"><span>Members</span><strong>{{ stats.members }}</strong></article>
+  <article class="metric-card reveal"><span>Loans</span><strong>{{ stats.active_loans }}</strong></article>
+  <article class="metric-card reveal"><span>Overdue</span><strong>{{ stats.overdue }}</strong></article>
+  <article class="metric-card reveal"><span>Fine exposure</span><strong>${{ stats.fine_exposure }}</strong></article>
+</section>
+
+<section class="dashboard-grid">
+  <div class="panel reveal">
+    <div class="section-head compact">
+      <div>
+        <span class="eyebrow">Analytics</span>
+        <h2>Collection mix</h2>
+      </div>
+    </div>
+    <canvas id="genreChart" height="220" data-genres='{{ genre_counts_json|safe }}'></canvas>
+  </div>
+  <div class="panel reveal">
+    <div class="section-head compact">
+      <div>
+        <span class="eyebrow">Requests</span>
+        <h2>Review queue</h2>
+      </div>
+      <a href="{% url 'circulation:requests' %}">All</a>
+    </div>
+    <div class="record-list">
+      {% for request_item in pending_requests %}
+        <article class="record-card">
+          <div>
+            <strong>{{ request_item.display_title }}</strong>
+            <span>{{ request_item.user }}</span>
+          </div>
+          <a class="btn-small" href="{% url 'circulation:request_review' request_item.pk %}">Review</a>
+        </article>
+      {% empty %}
+        <p class="empty-state">No pending requests.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="dashboard-grid">
+  <div class="panel reveal">
+    <div class="section-head compact">
+      <div>
+        <span class="eyebrow">Popular</span>
+        <h2>Most borrowed</h2>
+      </div>
+    </div>
+    <div class="rank-list">
+      {% for book in most_borrowed %}
+        <a href="{{ book.get_absolute_url }}"><span>{{ forloop.counter }}</span><strong>{{ book.title }}</strong><em>{{ book.issue_count }} loans</em></a>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="panel reveal">
+    <div class="section-head compact">
+      <div>
+        <span class="eyebrow">Members</span>
+        <h2>Active users</h2>
+      </div>
+    </div>
+    <div class="rank-list">
+      {% for active_user in active_users %}
+        <span class="rank-row"><span>{{ forloop.counter }}</span><strong>{{ active_user.get_full_name|default:active_user.username }}</strong><em>{{ active_user.active_loans }} loans</em></span>
+      {% empty %}
+        <p class="empty-state">No active users.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="panel reveal">
+  <div class="section-head compact">
+    <div>
+      <span class="eyebrow">Circulation</span>
+      <h2>Recent active loans</h2>
+    </div>
+    <a href="{% url 'circulation:history' %}">History</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Book</th><th>Member</th><th>Due</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for record in active_records %}
+          <tr>
+            <td>{{ record.book.title }}</td>
+            <td>{{ record.user }}</td>
+            <td>{{ record.due_date }}</td>
+            <td>{% if record.is_overdue %}<span class="status-wait">Overdue</span>{% else %}<span class="status-ok">Active</span>{% endif %}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4">No active circulation.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

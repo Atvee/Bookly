@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Notifications | Astra Library{% endblock %}
+{% block content %}
+<section class="page-head with-action">
+  <div>
+    <span class="eyebrow">Alerts</span>
+    <h1>Notifications</h1>
+  </div>
+  <form action="{% url 'circulation:notifications_read_all' %}" method="post">
+    {% csrf_token %}
+    <button class="btn-secondary" type="submit">Mark all read</button>
+  </form>
+</section>
+<section class="notice-list">
+  {% for notice in notifications %}
+    <article class="notice-card large reveal {% if not notice.is_read %}unread{% endif %}">
+      <div>
+        <span>{{ notice.get_kind_display }}</span>
+        <strong>{{ notice.message }}</strong>
+        <small>{{ notice.created_at|date:"M j, Y H:i" }}</small>
+      </div>
+      {% if notice.link %}
+        <a class="btn-small" href="{{ notice.link }}">Open</a>
+      {% endif %}
+      {% if not notice.is_read %}
+        <form action="{% url 'circulation:notification_read' notice.pk %}" method="post">
+          {% csrf_token %}
+          <button class="btn-small quiet" type="submit">Read</button>
+        </form>
+      {% endif %}
+    </article>
+  {% empty %}
+    <p class="empty-state">No notifications.</p>
+  {% endfor %}
+</section>
+{% include "partials/pagination.html" %}
+{% endblock %}

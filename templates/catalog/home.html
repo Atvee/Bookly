@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Astra Library | Discover{% endblock %}
+{% block content %}
+<section class="hero-grid">
+  <div class="hero-copy reveal">
+    <span class="eyebrow">Live catalog</span>
+    <h1>A modern library desk for every reader.</h1>
+    <p>Search the shelves, borrow available titles, request missing books, and track every due date from one calm workspace.</p>
+    <form class="hero-search" action="{% url 'catalog:book_list' %}" method="get">
+      <input type="search" name="q" placeholder="Search title, author, genre, ISBN">
+      <button class="btn-primary" type="submit">Search</button>
+    </form>
+    <div class="hero-actions">
+      <a class="btn-secondary" href="{% url 'catalog:book_list' %}">Browse catalog</a>
+      {% if user.is_authenticated %}
+        <a class="btn-ghost" href="{% url 'dashboards:dashboard' %}">Open dashboard</a>
+      {% else %}
+        <a class="btn-ghost" href="{% url 'accounts:register' %}">Get a card</a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="hero-shelf reveal">
+    {% for book in featured_books|slice:":4" %}
+      <a href="{{ book.get_absolute_url }}" class="hero-book">
+        {% if book.cover_image %}
+          <img src="{{ book.cover_image.url }}" alt="{{ book.title }} cover">
+        {% else %}
+          <span>{{ book.title|slice:":18" }}</span>
+        {% endif %}
+      </a>
+    {% empty %}
+      <div class="hero-book placeholder"><span>Add books</span></div>
+      <div class="hero-book placeholder two"><span>Seed data</span></div>
+      <div class="hero-book placeholder three"><span>Browse</span></div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section-band reveal">
+  <div class="section-head">
+    <div>
+      <span class="eyebrow">Featured</span>
+      <h2>Most borrowed right now</h2>
+    </div>
+    <a href="{% url 'catalog:book_list' %}?sort=popular">View all</a>
+  </div>
+  <div class="book-grid">
+    {% for book in featured_books %}
+      {% include "partials/book_card.html" %}
+    {% empty %}
+      <p class="empty-state">Run the seed command to fill the shelves.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="split-section">
+  <div class="panel reveal">
+    <div class="section-head compact">
+      <div>
+        <span class="eyebrow">Genres</span>
+        <h2>Browse by mood</h2>
+      </div>
+    </div>
+    <div class="chip-grid">
+      {% for genre in genres %}
+        <a href="{% url 'catalog:book_list' %}?genre={{ genre.genre }}" class="chip">
+          {{ genre.genre }} <span>{{ genre.total }}</span>
+        </a>
+      {% empty %}
+        <span class="chip muted">No genres yet</span>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="panel reveal">
+    <div class="section-head compact">
+      <div>
+        <span class="eyebrow">A-Z</span>
+        <h2>Classification</h2>
+      </div>
+    </div>
+    <div class="az-grid">
+      {% for category in categories %}
+        <a href="{% url 'catalog:book_list' %}?category={{ category.category }}">{{ category.category }}<span>{{ category.total }}</span></a>
+      {% empty %}
+        <span>No classifications yet.</span>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section-band reveal">
+  <div class="section-head">
+    <div>
+      <span class="eyebrow">New arrivals</span>
+      <h2>Fresh on the shelves</h2>
+    </div>
+  </div>
+  <div class="book-strip">
+    {% for book in new_books %}
+      {% include "partials/book_card.html" %}
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

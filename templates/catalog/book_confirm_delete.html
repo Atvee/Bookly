@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Remove Book | Astra Library{% endblock %}
+{% block content %}
+<section class="panel narrow reveal danger-zone">
+  <span class="eyebrow">Catalog removal</span>
+  <h1>Remove {{ object.title }}?</h1>
+  <form method="post" class="action-row">
+    {% csrf_token %}
+    <button class="btn-danger" type="submit">Remove</button>
+    <a class="btn-ghost" href="{{ object.get_absolute_url }}">Cancel</a>
+  </form>
+</section>
+{% endblock %}

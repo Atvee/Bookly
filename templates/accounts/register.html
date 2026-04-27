@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Join | Astra Library{% endblock %}
+{% block content %}
+<section class="auth-layout">
+  <div class="auth-panel reveal">
+    <span class="eyebrow">New member</span>
+    <h1>Create your library card.</h1>
+    <form method="post" class="form-grid">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="btn-primary" type="submit">Join Astra</button>
+    </form>
+  </div>
+  <div class="auth-art amber">
+    <div class="shelf-lines"></div>
+    <h2>A personal dashboard, borrowing history, fines, alerts, and recommendations.</h2>
+  </div>
+</section>
+{% endblock %}

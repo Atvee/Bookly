@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | Astra Library{% endblock %}
+{% block content %}
+<section class="dashboard-hero">
+  <div>
+    <span class="eyebrow">Member dashboard</span>
+    <h1>Hello, {{ user.first_name|default:user.username }}.</h1>
+    <p>{{ active_records|length }} active loans · ${{ pending_fines }} pending fines</p>
+  </div>
+  <a class="btn-primary" href="{% url 'catalog:book_list' %}">Browse books</a>
+</section>
+
+<section class="metric-grid">
+  <article class="metric-card reveal">
+    <span>Active loans</span>
+    <strong>{{ active_records|length }}</strong>
+  </article>
+  <article class="metric-card reveal">
+    <span>Pending fines</span>
+    <strong>${{ pending_fines }}</strong>
+  </article>
+  <article class="metric-card reveal">
+    <span>Requests</span>
+    <strong>{{ requests|length }}</strong>
+  </article>
+</section>
+
+<section class="dashboard-grid">
+  <div class="panel reveal">
+    <div class="section-head compact">
+      <div>
+        <span class="eyebrow">Checked out</span>
+        <h2>Active loans</h2>
+      </div>
+    </div>
+    <div class="record-list">
+      {% for record in active_records %}
+        <article class="record-card {% if record.is_overdue %}overdue{% endif %}">
+          <div>
+            <strong>{{ record.book.title }}</strong>
+            <span>Due {{ record.due_date }}</span>
+          </div>
+          <div class="record-actions">
+            {% if record.fine_due %}
+              <span class="status-wait">${{ record.fine_due }}</span>
+            {% endif %}
+            <form action="{% url 'circulation:return_book' record.pk %}" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{% url 'dashboards:user_dashboard' %}">
+              <button class="btn-small" type="submit">Return</button>
+            </form>
+          </div>
+        </article>
+      {% empty %}
+        <p class="empty-state">No active checkouts.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="panel reveal">
+    <div class="section-head compact">
+      <div>
+        <span class="eyebrow">Alerts</span>
+        <h2>Notifications</h2>
+      </div>
+      <a href="{% url 'circulation:notifications' %}">View</a>
+    </div>
+    <div class="record-list">
+      {% for notice in notifications %}
+        <article class="notice-card {% if not notice.is_read %}unread{% endif %}">
+          <span>{{ notice.get_kind_display }}</span>
+          <strong>{{ notice.message }}</strong>
+        </article>
+      {% empty %}
+        <p class="empty-state">No notifications.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section-band reveal">
+  <div class="section-head">
+    <div>
+      <span class="eyebrow">For you</span>
+      <h2>Recommended reads</h2>
+    </div>
+  </div>
+  <div class="book-grid">
+    {% for book in recommendations %}
+      {% include "partials/book_card.html" %}
+    {% empty %}
+      <p class="empty-state">Borrow a few titles to unlock better recommendations.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="dashboard-grid">
+  <div class="panel reveal">
+    <div class="section-head compact">
+      <div>
+        <span class="eyebrow">Recent</span>
+        <h2>Borrowing history</h2>
+      </div>
+      <a href="{% url 'circulation:history' %}">All</a>
+    </div>
+    <div class="timeline-list">
+      {% for record in history %}
+        <article>
+          <span>{{ record.issue_date }}</span>
+          <strong>{{ record.book.title }}</strong>
+          <em>{{ record.get_status_display }}</em>
+        </article>
+      {% empty %}
+        <p class="empty-state">No history yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="panel reveal">
+    <div class="section-head compact">
+      <div>
+        <span class="eyebrow">Requests</span>
+        <h2>Book requests</h2>
+      </div>
+      <a href="{% url 'circulation:request_new' %}">New</a>
+    </div>
+    <div class="timeline-list">
+      {% for request_item in requests %}
+        <article>
+          <span>{{ request_item.created_at|date:"M j" }}</span>
+          <strong>{{ request_item.display_title }}</strong>
+          <em>{{ request_item.get_status_display }}</em>
+        </article>
+      {% empty %}
+        <p class="empty-state">No requests yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

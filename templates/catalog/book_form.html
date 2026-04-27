@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}Edit{% else %}Add{% endif %} Book | Astra Library{% endblock %}
+{% block content %}
+<section class="page-head">
+  <span class="eyebrow">Catalog editor</span>
+  <h1>{% if object %}Edit {{ object.title }}{% else %}Add a book{% endif %}</h1>
+</section>
+<section class="panel wide reveal">
+  <form method="post" enctype="multipart/form-data" class="form-grid two-col">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="form-actions">
+      <button class="btn-primary" type="submit">Save book</button>
+      <a class="btn-ghost" href="{% if object %}{{ object.get_absolute_url }}{% else %}{% url 'catalog:book_list' %}{% endif %}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

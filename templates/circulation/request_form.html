@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Book Request | Astra Library{% endblock %}
+{% block content %}
+<section class="page-head">
+  <span class="eyebrow">Request desk</span>
+  <h1>Request a book.</h1>
+</section>
+<section class="panel narrow reveal">
+  <form method="post" class="form-grid">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn-primary" type="submit">Submit request</button>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Catalog | Astra Library{% endblock %}
+{% block content %}
+<section class="page-head">
+  <span class="eyebrow">Catalog</span>
+  <h1>Find the next checkout.</h1>
+  <p>{{ page_obj.paginator.count }} titles across the library collection.</p>
+</section>
+
+<section class="catalog-layout">
+  <aside class="filter-panel reveal">
+    <form method="get" class="form-grid">
+      {{ search_form.as_p }}
+      <button class="btn-primary" type="submit">Apply filters</button>
+      <a class="btn-ghost center" href="{% url 'catalog:book_list' %}">Clear</a>
+    </form>
+    {% if user.is_authenticated and user.profile.can_manage_library or user.is_staff %}
+      <a class="btn-secondary full" href="{% url 'catalog:book_add' %}">Add book</a>
+    {% endif %}
+  </aside>
+
+  <div class="catalog-results">
+    {% if active_filters %}
+      <div class="active-filter-row">
+        {% for key, value in active_filters.items %}
+          <span>{{ key }}: {{ value }}</span>
+        {% endfor %}
+      </div>
+    {% endif %}
+    <div class="book-grid">
+      {% for book in books %}
+        {% include "partials/book_card.html" %}
+      {% empty %}
+        <div class="empty-state">No books match those filters.</div>
+      {% endfor %}
+    </div>
+    {% include "partials/pagination.html" %}
+  </div>
+</section>
+{% endblock %}

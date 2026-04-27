@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Login | Astra Library{% endblock %}
+{% block content %}
+<section class="auth-layout">
+  <div class="auth-panel reveal">
+    <span class="eyebrow">Welcome back</span>
+    <h1>Enter the stacks.</h1>
+    <form method="post" class="form-grid">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="btn-primary" type="submit">Login</button>
+    </form>
+    <p class="inline-note"><a href="{% url 'password_reset' %}">Reset password</a> or <a href="{% url 'accounts:register' %}">create an account</a>.</p>
+  </div>
+  <div class="auth-art">
+    <div class="shelf-lines"></div>
+    <h2>Borrow smarter, return calmer, discover faster.</h2>
+  </div>
+</section>
+{% endblock %}

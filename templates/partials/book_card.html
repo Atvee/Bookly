@@ -1,0 +1,24 @@
+<article class="book-card reveal">
+  <a class="book-cover" href="{{ book.get_absolute_url }}" aria-label="{{ book.title }}">
+    {% if book.cover_image %}
+      <img src="{{ book.cover_image.url }}" alt="{{ book.title }} cover">
+    {% else %}
+      <span class="cover-fallback">
+        <strong>{{ book.title|slice:":24" }}</strong>
+        <small>{{ book.author }}</small>
+      </span>
+    {% endif %}
+  </a>
+  <div class="book-card-body">
+    <div class="book-meta-row">
+      <span>{{ book.genre }}</span>
+      <span>{{ book.category }}</span>
+    </div>
+    <h3><a href="{{ book.get_absolute_url }}">{{ book.title }}</a></h3>
+    <p>{{ book.author }}</p>
+    <div class="card-footer">
+      <span class="{% if book.is_available %}status-ok{% else %}status-wait{% endif %}">{{ book.status_label }}</span>
+      <span>{{ book.issue_count|default:0 }} loans</span>
+    </div>
+  </div>
+</article>
