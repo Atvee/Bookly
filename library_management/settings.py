@@ -161,5 +161,5 @@ EMAIL_BACKEND = os.environ.get(
     "DJANGO_EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
 )
 
-LIBRARY_FINE_RATE_PER_DAY = os.environ.get("LIBRARY_FINE_RATE_PER_DAY", "2.00")
+LIBRARY_FINE_RATE_PER_DAY = os.environ.get("LIBRARY_FINE_RATE_PER_DAY", "10.00")
 LIBRARY_LOAN_DAYS = int(os.environ.get("LIBRARY_LOAN_DAYS", "14"))
