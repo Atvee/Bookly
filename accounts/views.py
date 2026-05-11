@@ -15,7 +15,7 @@ class RegisterView(CreateView):
     def form_valid(self, form):
         response = super().form_valid(form)
         login(self.request, self.object)
-        messages.success(self.request, "Your library card is ready.")
+        messages.success(self.request, "Your Bookly library card is ready.")
         return response
 
 

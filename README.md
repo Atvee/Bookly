@@ -1,6 +1,6 @@
-# Astra Library Management System
+# Bookly Library Management System
 
-A complete Django 6 library management application with member accounts, role-aware dashboards, book CRUD, search, borrowing, fines, requests, notifications, legal eBook lookup links, sample data, and optional Docker/PostgreSQL support.
+A complete Django 6 library management application with member accounts, role-aware dashboards, book CRUD, search, borrowing, QR-code dues payment, user reviews, requests, notifications, legal eBook/PDF links, real-world sample data, and optional Docker/PostgreSQL support.
 
 ## Features
 
@@ -9,11 +9,17 @@ A complete Django 6 library management application with member accounts, role-aw
 - Catalog: A-Z classification, genre filters, cover uploads, stock tracking, admin customization.
 - Circulation: issue, return, due dates, borrowing history, duplicate active checkout prevention.
 - Fines: automatic overdue-day calculation using `LIBRARY_FINE_RATE_PER_DAY`.
+- QR dues payments: members can generate a QR/UPI sample transaction for overdue dues, confirm payment, and mark fines paid.
+- Reviews: authenticated users can rate and review books; average ratings appear in the catalog.
 - Requests: members request unavailable or missing books; staff approve or reject; users receive notifications.
 - Recommendations: rule-based suggestions from borrowing genres plus popular books.
-- eBooks: legal-safe links to Open Library, Project Gutenberg, Internet Archive, WorldCat, or a configured provider URL.
+- eBooks/PDFs: legal-safe links to Open Library, Project Gutenberg, Internet Archive, WorldCat, configured provider URLs, and open PDF links.
 - Dashboards: interactive member dashboard and operations dashboard with a canvas analytics chart.
 - API: lightweight JSON endpoints at `/api/books/`, `/api/books/<id>/`, and `/dashboard/api/analytics/`.
+
+## Sample Data
+
+`python manage.py seed_library` creates real-world public-domain/open-access examples, including Jane Austen, Mary Shelley, H. G. Wells, Herman Melville, SICP, Think Python, Think Complexity, and OpenStax Introduction to Python Programming. Seed records include external cover URLs, legal source pages, and PDF links where available.
 
 ## Local Setup
 
@@ -69,8 +75,8 @@ python manage.py collectstatic
 
 ```text
 accounts/      user profiles, roles, registration, permissions
-catalog/       books, catalog CRUD, search, eBook links, seed command
-circulation/   borrowing, returns, fines, requests, notifications
+catalog/       books, reviews, catalog CRUD, search, PDF/eBook links, seed command
+circulation/   borrowing, returns, QR payments, fines, requests, notifications
 dashboards/    member and admin dashboards plus analytics JSON
 templates/     responsive Django templates
 static/        custom CSS and JavaScript

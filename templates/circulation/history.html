@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Borrowing History | Astra Library{% endblock %}
+{% block title %}Borrowing History | Bookly{% endblock %}
 {% block content %}
 <section class="page-head">
   <span class="eyebrow">Circulation</span>
@@ -28,6 +28,8 @@
                   <input type="hidden" name="next" value="{% url 'circulation:history' %}">
                   <button class="btn-small" type="submit">Return</button>
                 </form>
+              {% elif record.fine_due %}
+                <a class="btn-small" href="{% url 'circulation:pay_record_fine' record.pk %}">Pay QR</a>
               {% else %}
                 <span class="status-ok">{{ record.get_status_display }}</span>
               {% endif %}

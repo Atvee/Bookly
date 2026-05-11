@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}{{ book.title }} | Astra Library{% endblock %}
+{% block title %}{{ book.title }} | Bookly{% endblock %}
 {% block content %}
 <section class="detail-layout">
   <div class="detail-cover reveal">
-    {% if book.cover_image %}
-      <img src="{{ book.cover_image.url }}" alt="{{ book.title }} cover">
+    {% if book.cover_url %}
+      <img src="{{ book.cover_url }}" alt="{{ book.title }} cover">
     {% else %}
       <div class="cover-fallback large">
         <strong>{{ book.title }}</strong>
@@ -17,6 +17,7 @@
       <span>{{ book.genre }}</span>
       <span>{{ book.category }} shelf</span>
       <span>{{ book.status_label }}</span>
+      {% if book.average_rating_value %}<span>★ {{ book.average_rating_value }}</span>{% endif %}
     </div>
     <h1>{{ book.title }}</h1>
     <p class="lead">by {{ book.author }}</p>
@@ -26,9 +27,16 @@
       <div><dt>Publisher</dt><dd>{{ book.publisher|default:"Not listed" }}</dd></div>
       <div><dt>Year</dt><dd>{{ book.publication_year|default:"Not listed" }}</dd></div>
       <div><dt>Stock</dt><dd>{{ book.available_stock }} / {{ book.total_stock }}</dd></div>
+      <div><dt>Digital</dt><dd>{{ book.digital_copy_format|default:"Web" }}</dd></div>
     </dl>
     <div class="action-row">
+      {% if book.pdf_url %}
+        <a class="btn-secondary" href="{{ book.pdf_url }}" target="_blank" rel="noopener">Open PDF</a>
+      {% endif %}
       <a class="btn-secondary" href="{% url 'catalog:ebook_open' book.pk %}">Find eBook</a>
+      {% if book.source_url %}
+        <a class="btn-ghost" href="{{ book.source_url }}" target="_blank" rel="noopener">Source</a>
+      {% endif %}
       {% if user.is_authenticated %}
         {% if book.is_available %}
           {% if active_borrow %}
@@ -51,6 +59,46 @@
       {% endif %}
     </div>
   </article>
+</section>
+
+<section class="dashboard-grid">
+  <div class="panel reveal">
+    <div class="section-head compact">
+      <div>
+        <span class="eyebrow">Reader reviews</span>
+        <h2>What members think</h2>
+      </div>
+    </div>
+    <div class="review-list">
+      {% for review in reviews %}
+        <article class="review-card">
+          <div class="review-stars">{{ review.star_display }}</div>
+          <strong>{{ review.title }}</strong>
+          <p>{{ review.body }}</p>
+          <small>{{ review.user.get_full_name|default:review.user.username }} · {{ review.created_at|date:"M j, Y" }}</small>
+        </article>
+      {% empty %}
+        <p class="empty-state">No reviews yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="panel reveal">
+    <div class="section-head compact">
+      <div>
+        <span class="eyebrow">Your rating</span>
+        <h2>{% if user_review %}Update review{% else %}Review this book{% endif %}</h2>
+      </div>
+    </div>
+    {% if user.is_authenticated %}
+      <form action="{% url 'catalog:book_review' book.pk %}" method="post" class="form-grid">
+        {% csrf_token %}
+        {{ review_form.as_p }}
+        <button class="btn-primary" type="submit">Save review</button>
+      </form>
+    {% else %}
+      <p class="empty-state">Login to rate and review this book.</p>
+    {% endif %}
+  </div>
 </section>
 
 <section class="section-band reveal">

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from circulation.models import BookRequest, BorrowRecord, Notification
+from circulation.models import BookRequest, BorrowRecord, Notification, PaymentTransaction
 
 
 @admin.register(BorrowRecord)
@@ -26,3 +26,12 @@ class NotificationAdmin(admin.ModelAdmin):
     list_display = ("user", "kind", "message", "is_read", "created_at")
     list_filter = ("kind", "is_read", "created_at")
     search_fields = ("message", "user__username", "user__email")
+
+
+@admin.register(PaymentTransaction)
+class PaymentTransactionAdmin(admin.ModelAdmin):
+    list_display = ("reference", "user", "amount", "method", "status", "created_at", "paid_at")
+    list_filter = ("status", "method", "created_at", "paid_at")
+    search_fields = ("reference", "user__username", "user__email", "note")
+    autocomplete_fields = ("user", "borrow_record")
+    readonly_fields = ("qr_payload", "qr_code_url", "created_at", "paid_at")

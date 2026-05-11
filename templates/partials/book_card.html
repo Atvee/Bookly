@@ -1,7 +1,7 @@
 <article class="book-card reveal">
   <a class="book-cover" href="{{ book.get_absolute_url }}" aria-label="{{ book.title }}">
-    {% if book.cover_image %}
-      <img src="{{ book.cover_image.url }}" alt="{{ book.title }} cover">
+    {% if book.cover_url %}
+      <img src="{{ book.cover_url }}" alt="{{ book.title }} cover">
     {% else %}
       <span class="cover-fallback">
         <strong>{{ book.title|slice:":24" }}</strong>
@@ -18,7 +18,7 @@
     <p>{{ book.author }}</p>
     <div class="card-footer">
       <span class="{% if book.is_available %}status-ok{% else %}status-wait{% endif %}">{{ book.status_label }}</span>
-      <span>{{ book.issue_count|default:0 }} loans</span>
+      <span>{% if book.average_rating_value %}★ {{ book.average_rating_value }}{% else %}{{ book.issue_count|default:0 }} loans{% endif %}</span>
     </div>
   </div>
 </article>

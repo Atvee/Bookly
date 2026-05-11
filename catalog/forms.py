@@ -1,6 +1,6 @@
 from django import forms
 
-from catalog.models import Book
+from catalog.models import Book, BookReview
 
 
 class BookForm(forms.ModelForm):
@@ -14,12 +14,16 @@ class BookForm(forms.ModelForm):
             "genre",
             "category",
             "cover_image",
+            "external_cover_url",
             "total_stock",
             "available_stock",
             "publication_year",
             "publisher",
             "ebook_url",
             "ebook_provider_label",
+            "pdf_url",
+            "source_url",
+            "digital_copy_format",
         )
         widgets = {
             "description": forms.Textarea(attrs={"rows": 5}),
@@ -47,3 +51,13 @@ class BookSearchForm(forms.Form):
     )
     availability = forms.ChoiceField(required=False, choices=AVAILABILITY_CHOICES)
     sort = forms.ChoiceField(required=False, choices=SORT_CHOICES)
+
+
+class BookReviewForm(forms.ModelForm):
+    class Meta:
+        model = BookReview
+        fields = ("rating", "title", "body")
+        widgets = {
+            "rating": forms.NumberInput(attrs={"min": 1, "max": 5}),
+            "body": forms.Textarea(attrs={"rows": 4}),
+        }

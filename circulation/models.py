@@ -1,5 +1,6 @@
 from datetime import timedelta
 from decimal import Decimal
+from urllib.parse import quote_plus
 
 from django.conf import settings
 from django.db import models
@@ -160,6 +161,7 @@ class Notification(models.Model):
         REQUEST = "REQUEST", "Request"
         RETURN = "RETURN", "Return"
         FINE = "FINE", "Fine"
+        PAYMENT = "PAYMENT", "Payment"
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -178,6 +180,76 @@ class Notification(models.Model):
 
     def __str__(self):
         return self.message
+
+
+class PaymentTransaction(models.Model):
+    """Sample QR-based payment record for overdue dues and fines."""
+
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        PAID = "PAID", "Paid"
+        FAILED = "FAILED", "Failed"
+        WAIVED = "WAIVED", "Waived"
+
+    class Method(models.TextChoices):
+        QR_UPI = "QR_UPI", "QR / UPI"
+        CASH = "CASH", "Cash"
+        CARD = "CARD", "Card"
+        WAIVER = "WAIVER", "Waiver"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="payments",
+    )
+    borrow_record = models.ForeignKey(
+        BorrowRecord,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="payments",
+    )
+    amount = models.DecimalField(max_digits=8, decimal_places=2)
+    method = models.CharField(max_length=20, choices=Method.choices, default=Method.QR_UPI)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    upi_id = models.CharField(max_length=120, default="bookly@upi")
+    reference = models.CharField(max_length=80, unique=True)
+    note = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    paid_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "status", "created_at"]),
+            models.Index(fields=["reference"]),
+        ]
+
+    def __str__(self):
+        return f"{self.reference} - {self.user} - {self.amount}"
+
+    @property
+    def qr_payload(self):
+        transaction_note = quote_plus(f"Bookly dues {self.reference}")
+        return (
+            f"upi://pay?pa={quote_plus(self.upi_id)}&pn=Bookly%20Library"
+            f"&am={self.amount}&cu=INR&tn={transaction_note}"
+        )
+
+    @property
+    def qr_code_url(self):
+        return (
+            "https://api.qrserver.com/v1/create-qr-code/"
+            f"?size=220x220&data={quote_plus(self.qr_payload)}"
+        )
+
+    def mark_paid(self):
+        self.status = self.Status.PAID
+        self.paid_at = timezone.now()
+        self.save(update_fields=["status", "paid_at"])
+        if self.borrow_record:
+            self.borrow_record.fine_paid = True
+            self.borrow_record.save(update_fields=["fine_paid", "updated_at"])
 
 
 def notify_waitlist_for_book(book):

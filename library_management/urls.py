@@ -4,8 +4,8 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
-admin.site.site_header = "Astra Library Admin"
-admin.site.site_title = "Astra Library"
+admin.site.site_header = "Bookly Admin"
+admin.site.site_title = "Bookly"
 admin.site.index_title = "Operations Console"
 
 urlpatterns = [

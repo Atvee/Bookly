@@ -1,7 +1,8 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.contrib.auth import get_user_model
 
-from catalog.models import Book
+from catalog.models import Book, BookReview
 
 
 class BookModelTests(TestCase):
@@ -33,3 +34,25 @@ class BookListTests(TestCase):
         response = self.client.get(reverse("catalog:book_list"), {"q": "Ocean"})
 
         self.assertContains(response, "Ocean of Stars")
+
+
+class BookReviewTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username="reader", password="MemberPass123!")
+        self.book = Book.objects.create(
+            title="Reviewed Book",
+            author="A. Critic",
+            isbn="REV-1",
+            description="A test book.",
+            genre=Book.Genre.FICTION,
+        )
+
+    def test_authenticated_user_can_review_book(self):
+        self.client.login(username="reader", password="MemberPass123!")
+        response = self.client.post(
+            reverse("catalog:book_review", args=[self.book.pk]),
+            {"rating": 5, "title": "Excellent", "body": "A thoughtful read."},
+        )
+
+        self.assertRedirects(response, self.book.get_absolute_url())
+        self.assertEqual(BookReview.objects.get(book=self.book, user=self.user).rating, 5)

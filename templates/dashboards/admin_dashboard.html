@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Admin Dashboard | Astra Library{% endblock %}
+{% block title %}Admin Dashboard | Bookly{% endblock %}
 {% block content %}
 <section class="dashboard-hero admin">
   <div>
     <span class="eyebrow">Operations console</span>
     <h1>Library command center.</h1>
-    <p>{{ stats.active_loans }} active loans · {{ stats.pending_requests }} pending requests · {{ stats.overdue }} overdue</p>
+    <p>{{ stats.active_loans }} active loans · {{ stats.pending_requests }} pending requests · {{ stats.pending_payments }} QR payments pending</p>
   </div>
   <a class="btn-primary" href="{% url 'catalog:book_add' %}">Add book</a>
 </section>
@@ -16,6 +16,8 @@
   <article class="metric-card reveal"><span>Loans</span><strong>{{ stats.active_loans }}</strong></article>
   <article class="metric-card reveal"><span>Overdue</span><strong>{{ stats.overdue }}</strong></article>
   <article class="metric-card reveal"><span>Fine exposure</span><strong>${{ stats.fine_exposure }}</strong></article>
+  <article class="metric-card reveal"><span>Dues collected</span><strong>${{ stats.collected_dues }}</strong></article>
+  <article class="metric-card reveal"><span>Reviews</span><strong>{{ stats.reviews }}</strong></article>
 </section>
 
 <section class="dashboard-grid">
@@ -80,6 +82,41 @@
         <p class="empty-state">No active users.</p>
       {% endfor %}
     </div>
+  </div>
+</section>
+
+<section class="panel reveal">
+  <div class="section-head compact">
+    <div>
+      <span class="eyebrow">Payments</span>
+      <h2>Pending QR dues</h2>
+    </div>
+    <a href="{% url 'circulation:payments' %}">All payments</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Reference</th><th>Member</th><th>Book</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for payment in pending_payments %}
+          <tr>
+            <td>{{ payment.reference }}</td>
+            <td>{{ payment.user }}</td>
+            <td>{% if payment.borrow_record %}{{ payment.borrow_record.book.title }}{% else %}General dues{% endif %}</td>
+            <td>INR {{ payment.amount }}</td>
+            <td><span class="status-wait">{{ payment.get_status_display }}</span></td>
+            <td>
+              {% if payment.borrow_record %}
+                <a class="btn-small" href="{% url 'circulation:pay_record_fine' payment.borrow_record.pk %}">QR</a>
+              {% else %}
+                <span class="muted">Manual</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6">No pending QR payments.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </section>
 

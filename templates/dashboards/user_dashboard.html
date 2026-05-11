@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Dashboard | Astra Library{% endblock %}
+{% block title %}Dashboard | Bookly{% endblock %}
 {% block content %}
 <section class="dashboard-hero">
   <div>
     <span class="eyebrow">Member dashboard</span>
     <h1>Hello, {{ user.first_name|default:user.username }}.</h1>
-    <p>{{ active_records|length }} active loans · ${{ pending_fines }} pending fines</p>
+    <p>{{ active_records|length }} active loans · ${{ pending_fines }} pending dues</p>
   </div>
   <a class="btn-primary" href="{% url 'catalog:book_list' %}">Browse books</a>
 </section>
@@ -16,8 +16,12 @@
     <strong>{{ active_records|length }}</strong>
   </article>
   <article class="metric-card reveal">
-    <span>Pending fines</span>
+    <span>Pending dues</span>
     <strong>${{ pending_fines }}</strong>
+  </article>
+  <article class="metric-card reveal">
+    <span>Payments</span>
+    <strong>{{ recent_payments|length }}</strong>
   </article>
   <article class="metric-card reveal">
     <span>Requests</span>
@@ -73,6 +77,50 @@
         </article>
       {% empty %}
         <p class="empty-state">No notifications.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="dashboard-grid">
+  <div class="panel reveal">
+    <div class="section-head compact">
+      <div>
+        <span class="eyebrow">QR dues</span>
+        <h2>Pay overdue dues</h2>
+      </div>
+      <a href="{% url 'circulation:payments' %}">Payments</a>
+    </div>
+    <div class="record-list">
+      {% for record in due_records %}
+        <article class="record-card overdue">
+          <div>
+            <strong>{{ record.book.title }}</strong>
+            <span>${{ record.fine_due }} due · {{ record.overdue_days }} overdue days</span>
+          </div>
+          <a class="btn-small" href="{% url 'circulation:pay_record_fine' record.pk %}">Pay QR</a>
+        </article>
+      {% empty %}
+        <p class="empty-state">No unpaid dues. Very tidy.</p>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="panel reveal">
+    <div class="section-head compact">
+      <div>
+        <span class="eyebrow">Receipts</span>
+        <h2>Recent payments</h2>
+      </div>
+    </div>
+    <div class="timeline-list">
+      {% for payment in recent_payments %}
+        <article>
+          <span>{{ payment.created_at|date:"M j" }}</span>
+          <strong>${{ payment.amount }} · {{ payment.reference }}</strong>
+          <em>{{ payment.get_status_display }}</em>
+        </article>
+      {% empty %}
+        <p class="empty-state">No payments yet.</p>
       {% endfor %}
     </div>
   </div>

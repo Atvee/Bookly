@@ -11,8 +11,8 @@ from django.views import View
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, TemplateView, UpdateView
 
 from accounts.permissions import LibraryStaffRequiredMixin
-from catalog.forms import BookForm, BookSearchForm
-from catalog.models import Book
+from catalog.forms import BookForm, BookReviewForm, BookSearchForm
+from catalog.models import Book, BookReview
 
 
 class HomeView(TemplateView):
@@ -97,11 +97,18 @@ class BookDetailView(DetailView):
             .exclude(pk=self.object.pk)
             .order_by("-issue_count", "title")[:4]
         )
+        context["reviews"] = self.object.reviews.filter(is_public=True).select_related("user")[:8]
+        context["review_form"] = BookReviewForm()
+        context["user_review"] = None
         if self.request.user.is_authenticated:
             from circulation.forms import BorrowBookForm
             from circulation.models import BorrowRecord
 
             context["borrow_form"] = BorrowBookForm(user=self.request.user)
+            context["review_form"] = BookReviewForm(
+                instance=self.object.reviews.filter(user=self.request.user).first()
+            )
+            context["user_review"] = self.object.reviews.filter(user=self.request.user).first()
             context["active_borrow"] = BorrowRecord.objects.filter(
                 book=self.object,
                 user=self.request.user,
@@ -140,6 +147,23 @@ class BookDeleteView(LoginRequiredMixin, LibraryStaffRequiredMixin, DeleteView):
     def form_valid(self, form):
         messages.success(self.request, "Book removed from the catalog.")
         return super().form_valid(form)
+
+
+class BookReviewCreateView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        book = get_object_or_404(Book, pk=pk)
+        instance = BookReview.objects.filter(book=book, user=request.user).first()
+        form = BookReviewForm(request.POST, instance=instance)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.book = book
+            review.user = request.user
+            review.is_public = True
+            review.save()
+            messages.success(request, "Your review has been saved.")
+        else:
+            messages.error(request, "Please add a rating from 1 to 5 and a short review.")
+        return redirect(book.get_absolute_url())
 
 
 class EbookSearchView(DetailView):
@@ -186,6 +210,9 @@ class BookApiListView(View):
                         "category": book.category,
                         "available_stock": book.available_stock,
                         "total_stock": book.total_stock,
+                        "average_rating": book.average_rating_value,
+                        "pdf_url": book.pdf_url,
+                        "source_url": book.source_url,
                         "detail_url": request.build_absolute_uri(book.get_absolute_url()),
                     }
                     for book in queryset
@@ -208,6 +235,9 @@ class BookApiDetailView(View):
                 "category": book.category,
                 "available_stock": book.available_stock,
                 "total_stock": book.total_stock,
-                "cover_url": request.build_absolute_uri(book.cover_image.url) if book.cover_image else "",
+                "average_rating": book.average_rating_value,
+                "pdf_url": book.pdf_url,
+                "source_url": book.source_url,
+                "cover_url": request.build_absolute_uri(book.cover_url) if book.cover_image else book.cover_url,
             }
         )

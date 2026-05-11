@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from catalog.models import Book
-from circulation.models import BorrowRecord
+from circulation.models import BorrowRecord, PaymentTransaction
 
 
 class CirculationFlowTests(TestCase):
@@ -43,3 +43,27 @@ class CirculationFlowTests(TestCase):
 
         self.assertEqual(record.overdue_days, 3)
         self.assertEqual(record.fine_amount, 6)
+
+    def test_qr_payment_marks_fine_paid(self):
+        record = BorrowRecord.objects.create(
+            user=self.user,
+            book=self.book,
+            due_date=timezone.localdate() - timedelta(days=3),
+            return_date=timezone.localdate(),
+            status=BorrowRecord.Status.RETURNED,
+        )
+        payment = PaymentTransaction.objects.create(
+            user=self.user,
+            borrow_record=record,
+            amount=record.fine_due,
+            reference="BKLY-TEST-001",
+            note="Test dues payment",
+        )
+        self.client.login(username="member", password="MemberPass123!")
+        response = self.client.post(reverse("circulation:payment_confirm", args=[payment.pk]))
+
+        self.assertRedirects(response, reverse("circulation:payments"))
+        record.refresh_from_db()
+        payment.refresh_from_db()
+        self.assertTrue(record.fine_paid)
+        self.assertEqual(payment.status, PaymentTransaction.Status.PAID)

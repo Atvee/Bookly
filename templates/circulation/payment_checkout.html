@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}QR Payment | Bookly{% endblock %}
+{% block content %}
+<section class="page-head">
+  <span class="eyebrow">QR payment</span>
+  <h1>Pay dues with QR.</h1>
+  <p>{{ payment.reference }} · INR {{ payment.amount }} · {{ payment.get_status_display }}</p>
+</section>
+
+<section class="payment-layout">
+  <div class="panel reveal qr-panel">
+    <img src="{{ payment.qr_code_url }}" alt="QR code for {{ payment.reference }}">
+    <div>
+      <span class="eyebrow">Scan to pay</span>
+      <h2>INR {{ payment.amount }}</h2>
+      <p>{{ payment.note }}</p>
+      <code>{{ payment.qr_payload }}</code>
+    </div>
+  </div>
+  <div class="panel reveal">
+    <div class="section-head compact">
+      <div>
+        <span class="eyebrow">Record</span>
+        <h2>{{ payment.borrow_record.book.title }}</h2>
+      </div>
+    </div>
+    <dl class="detail-list single">
+      <div><dt>Member</dt><dd>{{ payment.user.get_full_name|default:payment.user.username }}</dd></div>
+      <div><dt>Due date</dt><dd>{{ payment.borrow_record.due_date }}</dd></div>
+      <div><dt>Overdue days</dt><dd>{{ payment.borrow_record.overdue_days }}</dd></div>
+      <div><dt>UPI ID</dt><dd>{{ payment.upi_id }}</dd></div>
+    </dl>
+    <form action="{% url 'circulation:payment_confirm' payment.pk %}" method="post" class="action-row">
+      {% csrf_token %}
+      <button class="btn-primary" type="submit">Confirm sample payment</button>
+      <a class="btn-ghost" href="{% url 'circulation:history' %}">Back</a>
+    </form>
+  </div>
+</section>
+{% endblock %}

@@ -10,8 +10,8 @@ from django.views import View
 from django.views.generic import TemplateView
 
 from accounts.permissions import LibraryStaffRequiredMixin, can_manage_library
-from catalog.models import Book
-from circulation.models import BookRequest, BorrowRecord, Notification
+from catalog.models import Book, BookReview
+from circulation.models import BookRequest, BorrowRecord, Notification, PaymentTransaction
 
 
 class DashboardRedirectView(LoginRequiredMixin, View):
@@ -52,15 +52,22 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
                 "title",
             )[:6]
 
-        pending_fines = sum((record.fine_due for record in active_records), Decimal("0.00"))
+        due_records = [
+            record
+            for record in BorrowRecord.objects.select_related("book").filter(user=user)
+            if record.fine_due > 0
+        ]
+        pending_fines = sum((record.fine_due for record in due_records), Decimal("0.00"))
         context.update(
             {
                 "active_records": active_records,
+                "due_records": due_records,
                 "history": history,
                 "requests": requests,
                 "notifications": notifications,
                 "recommendations": recommendations,
                 "pending_fines": pending_fines,
+                "recent_payments": PaymentTransaction.objects.filter(user=user)[:5],
             }
         )
         return context
@@ -94,6 +101,17 @@ class AdminDashboardView(LoginRequiredMixin, LibraryStaffRequiredMixin, Template
                     "active_loans": active_records.count(),
                     "overdue": len(overdue_records),
                     "pending_requests": BookRequest.objects.filter(status=BookRequest.Status.PENDING).count(),
+                    "reviews": BookReview.objects.filter(is_public=True).count(),
+                    "pending_payments": PaymentTransaction.objects.filter(
+                        status=PaymentTransaction.Status.PENDING
+                    ).count(),
+                    "collected_dues": sum(
+                        (
+                            payment.amount
+                            for payment in PaymentTransaction.objects.filter(status=PaymentTransaction.Status.PAID)
+                        ),
+                        Decimal("0.00"),
+                    ),
                     "fine_exposure": sum((record.fine_due for record in overdue_records), Decimal("0.00")),
                 },
                 "active_records": active_records[:8],
@@ -103,6 +121,9 @@ class AdminDashboardView(LoginRequiredMixin, LibraryStaffRequiredMixin, Template
                 )[:8],
                 "most_borrowed": most_borrowed,
                 "active_users": active_users,
+                "pending_payments": PaymentTransaction.objects.select_related("user", "borrow_record__book").filter(
+                    status=PaymentTransaction.Status.PENDING
+                )[:8],
                 "genre_counts_json": json.dumps(genre_counts),
                 "request_counts_json": json.dumps(request_counts),
             }
@@ -117,6 +138,8 @@ class AnalyticsJsonView(LoginRequiredMixin, LibraryStaffRequiredMixin, View):
                 "books": Book.objects.count(),
                 "active_loans": BorrowRecord.objects.filter(status=BorrowRecord.Status.BORROWED).count(),
                 "pending_requests": BookRequest.objects.filter(status=BookRequest.Status.PENDING).count(),
+                "reviews": BookReview.objects.filter(is_public=True).count(),
+                "pending_payments": PaymentTransaction.objects.filter(status=PaymentTransaction.Status.PENDING).count(),
                 "most_borrowed": [
                     {"title": book.title, "issues": book.issue_count}
                     for book in Book.objects.with_popularity().order_by("-issue_count", "title")[:10]

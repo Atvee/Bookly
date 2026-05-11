@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
@@ -6,12 +8,12 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.views import View
-from django.views.generic import CreateView, ListView, UpdateView
+from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
 from accounts.permissions import LibraryStaffRequiredMixin, can_manage_library
 from catalog.models import Book
 from circulation.forms import BookRequestForm, BorrowBookForm, RequestReviewForm
-from circulation.models import BookRequest, BorrowRecord, Notification
+from circulation.models import BookRequest, BorrowRecord, Notification, PaymentTransaction
 
 
 class IssueBookView(LoginRequiredMixin, View):
@@ -95,6 +97,79 @@ class BorrowingHistoryView(LoginRequiredMixin, ListView):
         query_params.pop("page", None)
         context["querystring"] = query_params.urlencode()
         return context
+
+
+class PaymentListView(LoginRequiredMixin, ListView):
+    model = PaymentTransaction
+    template_name = "circulation/payment_list.html"
+    context_object_name = "payments"
+    paginate_by = 12
+
+    def get_queryset(self):
+        queryset = PaymentTransaction.objects.select_related("user", "borrow_record", "borrow_record__book")
+        if can_manage_library(self.request.user):
+            return queryset
+        return queryset.filter(user=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        query_params = self.request.GET.copy()
+        query_params.pop("page", None)
+        context["querystring"] = query_params.urlencode()
+        return context
+
+
+class PaymentCheckoutView(LoginRequiredMixin, DetailView):
+    model = PaymentTransaction
+    template_name = "circulation/payment_checkout.html"
+    context_object_name = "payment"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.borrow_record = get_object_or_404(
+            BorrowRecord.objects.select_related("book", "user"),
+            pk=kwargs["record_pk"],
+        )
+        if self.borrow_record.user != request.user and not can_manage_library(request.user):
+            raise PermissionDenied("You cannot pay dues for another member.")
+        if self.borrow_record.fine_due <= 0:
+            messages.info(request, "There are no outstanding dues for that record.")
+            return redirect("circulation:history")
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_object(self, queryset=None):
+        payment = PaymentTransaction.objects.filter(
+            borrow_record=self.borrow_record,
+            status=PaymentTransaction.Status.PENDING,
+        ).first()
+        if payment:
+            return payment
+        return PaymentTransaction.objects.create(
+            user=self.borrow_record.user,
+            borrow_record=self.borrow_record,
+            amount=self.borrow_record.fine_due,
+            reference=f"BKLY-{uuid4().hex[:10].upper()}",
+            note=f"Fine for {self.borrow_record.book.title}",
+        )
+
+
+class PaymentConfirmView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        payment = get_object_or_404(
+            PaymentTransaction.objects.select_related("borrow_record", "borrow_record__book", "user"),
+            pk=pk,
+        )
+        if payment.user != request.user and not can_manage_library(request.user):
+            raise PermissionDenied("You cannot confirm another member's payment.")
+        if payment.status != PaymentTransaction.Status.PAID:
+            payment.mark_paid()
+            Notification.objects.create(
+                user=payment.user,
+                kind=Notification.Kind.PAYMENT,
+                message=f"Payment {payment.reference} for ${payment.amount} was recorded.",
+                link=reverse("circulation:payments"),
+            )
+            messages.success(request, "Payment recorded and dues marked as paid.")
+        return redirect("circulation:payments")
 
 
 class BookRequestCreateView(LoginRequiredMixin, CreateView):

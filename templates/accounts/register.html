@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Join | Astra Library{% endblock %}
+{% block title %}Join | Bookly{% endblock %}
 {% block content %}
 <section class="auth-layout">
   <div class="auth-panel reveal">
@@ -8,7 +8,7 @@
     <form method="post" class="form-grid">
       {% csrf_token %}
       {{ form.as_p }}
-      <button class="btn-primary" type="submit">Join Astra</button>
+      <button class="btn-primary" type="submit">Join Bookly</button>
     </form>
   </div>
   <div class="auth-art amber">

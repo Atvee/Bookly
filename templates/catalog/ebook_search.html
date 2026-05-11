@@ -1,16 +1,28 @@
 {% extends "base.html" %}
-{% block title %}eBook Sources | Astra Library{% endblock %}
+{% block title %}eBook Sources | Bookly{% endblock %}
 {% block content %}
 <section class="page-head">
   <span class="eyebrow">Digital access</span>
   <h1>{{ book.title }}</h1>
-  <p>Legal public catalogs and library-friendly indexes.</p>
+  <p>Legal public catalogs, PDF links, and library-friendly indexes.</p>
 </section>
 <section class="source-grid reveal">
+  {% if book.pdf_url %}
+    <a class="source-card featured" href="{{ book.pdf_url }}" target="_blank" rel="noopener">
+      <span>PDF</span>
+      <strong>Open PDF</strong>
+    </a>
+  {% endif %}
   {% if book.ebook_url %}
     <a class="source-card featured" href="{{ book.ebook_url }}" target="_blank" rel="noopener">
       <span>{{ book.ebook_provider_label|default:"Library eBook" }}</span>
       <strong>Open provider</strong>
+    </a>
+  {% endif %}
+  {% if book.source_url %}
+    <a class="source-card" href="{{ book.source_url }}" target="_blank" rel="noopener">
+      <span>Source page</span>
+      <strong>View metadata</strong>
     </a>
   {% endif %}
   {% for label, url in legal_sources %}
