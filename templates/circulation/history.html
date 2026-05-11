@@ -10,33 +10,43 @@
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Book</th><th>Member</th><th>Issued</th><th>Due</th><th>Returned</th><th>Fine</th><th></th></tr>
+        <tr>
+          <th>Book</th>
+          <th>Member</th>
+          <th>Issued</th>
+          <th>Due</th>
+          <th>Returned</th>
+          <th>Fine</th>
+          <th></th>
+        </tr>
       </thead>
       <tbody>
         {% for record in records %}
-          <tr>
-            <td><a href="{{ record.book.get_absolute_url }}">{{ record.book.title }}</a></td>
-            <td>{{ record.user }}</td>
-            <td>{{ record.issue_date }}</td>
-            <td>{{ record.due_date }}</td>
-            <td>{{ record.return_date|default:"-" }}</td>
-            <td>${{ record.fine_due }}</td>
-            <td>
-              {% if record.is_active %}
-                <form action="{% url 'circulation:return_book' record.pk %}" method="post">
-                  {% csrf_token %}
-                  <input type="hidden" name="next" value="{% url 'circulation:history' %}">
-                  <button class="btn-small" type="submit">Return</button>
-                </form>
-              {% elif record.fine_due %}
-                <a class="btn-small" href="{% url 'circulation:pay_record_fine' record.pk %}">Pay QR</a>
-              {% else %}
-                <span class="status-ok">{{ record.get_status_display }}</span>
-              {% endif %}
-            </td>
-          </tr>
+        <tr>
+          <td><a href="{{ record.book.get_absolute_url }}">{{ record.book.title }}</a></td>
+          <td>{{ record.user }}</td>
+          <td>{{ record.issue_date }}</td>
+          <td>{{ record.due_date }}</td>
+          <td>{{ record.return_date|default:"-" }}</td>
+          <td>₹{{ record.fine_due }}</td>
+          <td>
+            {% if record.is_active %}
+            <form action="{% url 'circulation:return_book' record.pk %}" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{% url 'circulation:history' %}">
+              <button class="btn-small" type="submit">Return</button>
+            </form>
+            {% elif record.fine_due %}
+            <a class="btn-small" href="{% url 'circulation:pay_record_fine' record.pk %}">Pay QR</a>
+            {% else %}
+            <span class="status-ok">{{ record.get_status_display }}</span>
+            {% endif %}
+          </td>
+        </tr>
         {% empty %}
-          <tr><td colspan="7">No borrowing records yet.</td></tr>
+        <tr>
+          <td colspan="7">No borrowing records yet.</td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>

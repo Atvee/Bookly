@@ -5,7 +5,7 @@
   <div>
     <span class="eyebrow">Member dashboard</span>
     <h1>Hello, {{ user.first_name|default:user.username }}.</h1>
-    <p>{{ active_records|length }} active loans · ${{ pending_fines }} pending dues</p>
+    <p>{{ active_records|length }} active loans · ₹{{ pending_fines }} pending dues</p>
   </div>
   <a class="btn-primary" href="{% url 'catalog:book_list' %}">Browse books</a>
 </section>
@@ -17,7 +17,7 @@
   </article>
   <article class="metric-card reveal">
     <span>Pending dues</span>
-    <strong>${{ pending_fines }}</strong>
+    <strong>₹{{ pending_fines }}</strong>
   </article>
   <article class="metric-card reveal">
     <span>Payments</span>
@@ -39,24 +39,24 @@
     </div>
     <div class="record-list">
       {% for record in active_records %}
-        <article class="record-card {% if record.is_overdue %}overdue{% endif %}">
-          <div>
-            <strong>{{ record.book.title }}</strong>
-            <span>Due {{ record.due_date }}</span>
-          </div>
-          <div class="record-actions">
-            {% if record.fine_due %}
-              <span class="status-wait">${{ record.fine_due }}</span>
-            {% endif %}
-            <form action="{% url 'circulation:return_book' record.pk %}" method="post">
-              {% csrf_token %}
-              <input type="hidden" name="next" value="{% url 'dashboards:user_dashboard' %}">
-              <button class="btn-small" type="submit">Return</button>
-            </form>
-          </div>
-        </article>
+      <article class="record-card {% if record.is_overdue %}overdue{% endif %}">
+        <div>
+          <strong>{{ record.book.title }}</strong>
+          <span>Due {{ record.due_date }}</span>
+        </div>
+        <div class="record-actions">
+          {% if record.fine_due %}
+          <span class="status-wait">₹{{ record.fine_due }}</span>
+          {% endif %}
+          <form action="{% url 'circulation:return_book' record.pk %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'dashboards:user_dashboard' %}">
+            <button class="btn-small" type="submit">Return</button>
+          </form>
+        </div>
+      </article>
       {% empty %}
-        <p class="empty-state">No active checkouts.</p>
+      <p class="empty-state">No active checkouts.</p>
       {% endfor %}
     </div>
   </div>
@@ -71,12 +71,12 @@
     </div>
     <div class="record-list">
       {% for notice in notifications %}
-        <article class="notice-card {% if not notice.is_read %}unread{% endif %}">
-          <span>{{ notice.get_kind_display }}</span>
-          <strong>{{ notice.message }}</strong>
-        </article>
+      <article class="notice-card {% if not notice.is_read %}unread{% endif %}">
+        <span>{{ notice.get_kind_display }}</span>
+        <strong>{{ notice.message }}</strong>
+      </article>
       {% empty %}
-        <p class="empty-state">No notifications.</p>
+      <p class="empty-state">No notifications.</p>
       {% endfor %}
     </div>
   </div>
@@ -93,15 +93,15 @@
     </div>
     <div class="record-list">
       {% for record in due_records %}
-        <article class="record-card overdue">
-          <div>
-            <strong>{{ record.book.title }}</strong>
-            <span>${{ record.fine_due }} due · {{ record.overdue_days }} overdue days</span>
-          </div>
-          <a class="btn-small" href="{% url 'circulation:pay_record_fine' record.pk %}">Pay QR</a>
-        </article>
+      <article class="record-card overdue">
+        <div>
+          <strong>{{ record.book.title }}</strong>
+          <span>₹{{ record.fine_due }} due · {{ record.overdue_days }} overdue days</span>
+        </div>
+        <a class="btn-small" href="{% url 'circulation:pay_record_fine' record.pk %}">Pay QR</a>
+      </article>
       {% empty %}
-        <p class="empty-state">No unpaid dues. Very tidy.</p>
+      <p class="empty-state">No unpaid dues. Very tidy.</p>
       {% endfor %}
     </div>
   </div>
@@ -114,13 +114,13 @@
     </div>
     <div class="timeline-list">
       {% for payment in recent_payments %}
-        <article>
-          <span>{{ payment.created_at|date:"M j" }}</span>
-          <strong>${{ payment.amount }} · {{ payment.reference }}</strong>
-          <em>{{ payment.get_status_display }}</em>
-        </article>
+      <article>
+        <span>{{ payment.created_at|date:"M j" }}</span>
+        <strong>₹{{ payment.amount }} · {{ payment.reference }}</strong>
+        <em>{{ payment.get_status_display }}</em>
+      </article>
       {% empty %}
-        <p class="empty-state">No payments yet.</p>
+      <p class="empty-state">No payments yet.</p>
       {% endfor %}
     </div>
   </div>
@@ -135,9 +135,9 @@
   </div>
   <div class="book-grid">
     {% for book in recommendations %}
-      {% include "partials/book_card.html" %}
+    {% include "partials/book_card.html" %}
     {% empty %}
-      <p class="empty-state">Borrow a few titles to unlock better recommendations.</p>
+    <p class="empty-state">Borrow a few titles to unlock better recommendations.</p>
     {% endfor %}
   </div>
 </section>
@@ -153,13 +153,13 @@
     </div>
     <div class="timeline-list">
       {% for record in history %}
-        <article>
-          <span>{{ record.issue_date }}</span>
-          <strong>{{ record.book.title }}</strong>
-          <em>{{ record.get_status_display }}</em>
-        </article>
+      <article>
+        <span>{{ record.issue_date }}</span>
+        <strong>{{ record.book.title }}</strong>
+        <em>{{ record.get_status_display }}</em>
+      </article>
       {% empty %}
-        <p class="empty-state">No history yet.</p>
+      <p class="empty-state">No history yet.</p>
       {% endfor %}
     </div>
   </div>
@@ -173,13 +173,13 @@
     </div>
     <div class="timeline-list">
       {% for request_item in requests %}
-        <article>
-          <span>{{ request_item.created_at|date:"M j" }}</span>
-          <strong>{{ request_item.display_title }}</strong>
-          <em>{{ request_item.get_status_display }}</em>
-        </article>
+      <article>
+        <span>{{ request_item.created_at|date:"M j" }}</span>
+        <strong>{{ request_item.display_title }}</strong>
+        <em>{{ request_item.get_status_display }}</em>
+      </article>
       {% empty %}
-        <p class="empty-state">No requests yet.</p>
+      <p class="empty-state">No requests yet.</p>
       {% endfor %}
     </div>
   </div>

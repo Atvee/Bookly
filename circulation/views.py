@@ -67,7 +67,7 @@ class ReturnBookView(LoginRequiredMixin, View):
         with transaction.atomic():
             record.return_book()
         if record.fine_amount:
-            messages.warning(request, f"Returned with a fine of ${record.fine_amount}.")
+            messages.warning(request, f"Returned with a fine of ₹{record.fine_amount}.")
         else:
             messages.success(request, "Book returned. Thank you.")
         Notification.objects.create(
@@ -165,7 +165,7 @@ class PaymentConfirmView(LoginRequiredMixin, View):
             Notification.objects.create(
                 user=payment.user,
                 kind=Notification.Kind.PAYMENT,
-                message=f"Payment {payment.reference} for ${payment.amount} was recorded.",
+                message=f"Payment {payment.reference} for ₹{payment.amount} was recorded.",
                 link=reverse("circulation:payments"),
             )
             messages.success(request, "Payment recorded and dues marked as paid.")

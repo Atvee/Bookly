@@ -5,7 +5,8 @@
   <div>
     <span class="eyebrow">Operations console</span>
     <h1>Library command center.</h1>
-    <p>{{ stats.active_loans }} active loans · {{ stats.pending_requests }} pending requests · {{ stats.pending_payments }} QR payments pending</p>
+    <p>{{ stats.active_loans }} active loans · {{ stats.pending_requests }} pending requests · {{ stats.pending_payments
+      }} QR payments pending</p>
   </div>
   <a class="btn-primary" href="{% url 'catalog:book_add' %}">Add book</a>
 </section>
@@ -15,8 +16,8 @@
   <article class="metric-card reveal"><span>Members</span><strong>{{ stats.members }}</strong></article>
   <article class="metric-card reveal"><span>Loans</span><strong>{{ stats.active_loans }}</strong></article>
   <article class="metric-card reveal"><span>Overdue</span><strong>{{ stats.overdue }}</strong></article>
-  <article class="metric-card reveal"><span>Fine exposure</span><strong>${{ stats.fine_exposure }}</strong></article>
-  <article class="metric-card reveal"><span>Dues collected</span><strong>${{ stats.collected_dues }}</strong></article>
+  <article class="metric-card reveal"><span>Fine exposure</span><strong>₹{{ stats.fine_exposure }}</strong></article>
+  <article class="metric-card reveal"><span>Dues collected</span><strong>₹{{ stats.collected_dues }}</strong></article>
   <article class="metric-card reveal"><span>Reviews</span><strong>{{ stats.reviews }}</strong></article>
 </section>
 
@@ -40,15 +41,15 @@
     </div>
     <div class="record-list">
       {% for request_item in pending_requests %}
-        <article class="record-card">
-          <div>
-            <strong>{{ request_item.display_title }}</strong>
-            <span>{{ request_item.user }}</span>
-          </div>
-          <a class="btn-small" href="{% url 'circulation:request_review' request_item.pk %}">Review</a>
-        </article>
+      <article class="record-card">
+        <div>
+          <strong>{{ request_item.display_title }}</strong>
+          <span>{{ request_item.user }}</span>
+        </div>
+        <a class="btn-small" href="{% url 'circulation:request_review' request_item.pk %}">Review</a>
+      </article>
       {% empty %}
-        <p class="empty-state">No pending requests.</p>
+      <p class="empty-state">No pending requests.</p>
       {% endfor %}
     </div>
   </div>
@@ -64,7 +65,8 @@
     </div>
     <div class="rank-list">
       {% for book in most_borrowed %}
-        <a href="{{ book.get_absolute_url }}"><span>{{ forloop.counter }}</span><strong>{{ book.title }}</strong><em>{{ book.issue_count }} loans</em></a>
+      <a href="{{ book.get_absolute_url }}"><span>{{ forloop.counter }}</span><strong>{{ book.title }}</strong><em>{{
+          book.issue_count }} loans</em></a>
       {% endfor %}
     </div>
   </div>
@@ -77,9 +79,11 @@
     </div>
     <div class="rank-list">
       {% for active_user in active_users %}
-        <span class="rank-row"><span>{{ forloop.counter }}</span><strong>{{ active_user.get_full_name|default:active_user.username }}</strong><em>{{ active_user.active_loans }} loans</em></span>
+      <span class="rank-row"><span>{{ forloop.counter }}</span><strong>{{
+          active_user.get_full_name|default:active_user.username }}</strong><em>{{ active_user.active_loans }}
+          loans</em></span>
       {% empty %}
-        <p class="empty-state">No active users.</p>
+      <p class="empty-state">No active users.</p>
       {% endfor %}
     </div>
   </div>
@@ -95,25 +99,36 @@
   </div>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Reference</th><th>Member</th><th>Book</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+      <thead>
+        <tr>
+          <th>Reference</th>
+          <th>Member</th>
+          <th>Book</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
       <tbody>
         {% for payment in pending_payments %}
-          <tr>
-            <td>{{ payment.reference }}</td>
-            <td>{{ payment.user }}</td>
-            <td>{% if payment.borrow_record %}{{ payment.borrow_record.book.title }}{% else %}General dues{% endif %}</td>
-            <td>INR {{ payment.amount }}</td>
-            <td><span class="status-wait">{{ payment.get_status_display }}</span></td>
-            <td>
-              {% if payment.borrow_record %}
-                <a class="btn-small" href="{% url 'circulation:pay_record_fine' payment.borrow_record.pk %}">QR</a>
-              {% else %}
-                <span class="muted">Manual</span>
-              {% endif %}
-            </td>
-          </tr>
+        <tr>
+          <td>{{ payment.reference }}</td>
+          <td>{{ payment.user }}</td>
+          <td>{% if payment.borrow_record %}{{ payment.borrow_record.book.title }}{% else %}General dues{% endif %}</td>
+          <td>INR {{ payment.amount }}</td>
+          <td><span class="status-wait">{{ payment.get_status_display }}</span></td>
+          <td>
+            {% if payment.borrow_record %}
+            <a class="btn-small" href="{% url 'circulation:pay_record_fine' payment.borrow_record.pk %}">QR</a>
+            {% else %}
+            <span class="muted">Manual</span>
+            {% endif %}
+          </td>
+        </tr>
         {% empty %}
-          <tr><td colspan="6">No pending QR payments.</td></tr>
+        <tr>
+          <td colspan="6">No pending QR payments.</td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
@@ -130,17 +145,27 @@
   </div>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Book</th><th>Member</th><th>Due</th><th>Status</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Book</th>
+          <th>Member</th>
+          <th>Due</th>
+          <th>Status</th>
+        </tr>
+      </thead>
       <tbody>
         {% for record in active_records %}
-          <tr>
-            <td>{{ record.book.title }}</td>
-            <td>{{ record.user }}</td>
-            <td>{{ record.due_date }}</td>
-            <td>{% if record.is_overdue %}<span class="status-wait">Overdue</span>{% else %}<span class="status-ok">Active</span>{% endif %}</td>
-          </tr>
+        <tr>
+          <td>{{ record.book.title }}</td>
+          <td>{{ record.user }}</td>
+          <td>{{ record.due_date }}</td>
+          <td>{% if record.is_overdue %}<span class="status-wait">Overdue</span>{% else %}<span
+              class="status-ok">Active</span>{% endif %}</td>
+        </tr>
         {% empty %}
-          <tr><td colspan="4">No active circulation.</td></tr>
+        <tr>
+          <td colspan="4">No active circulation.</td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
